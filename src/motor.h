@@ -1,4 +1,5 @@
 #ifndef motor_h
+#define motor_h
 
 class Motor{
 public:
@@ -25,13 +26,14 @@ motor driver shield.*/
 class VNH5019: public Motor{
 public:
   /* Constructor */
-  VNH5019(uint8_t MINA_pin, uint8_t MINB_pin, uint8_t MPWM_pin){
-    this->MINA_pin = MINA_pin;
-    this->MINB_pin = MINB_pin;
-    this->MPWM_pin = MPWM_pin;
-    pinMode(MINA_pin, OUTPUT);
-    pinMode(MINB_pin, OUTPUT);
-    pinMode(MPWM_pin, OUTPUT);
+  VNH5019(uint8_t MINA_pin, uint8_t MINB_pin, uint8_t MPWM_pin)
+    : MINA(MINA_pin),
+      MINB(MINB_pin),
+      MPWM(MPWM_pin)
+  {
+    pinMode(MINA, OUTPUT);
+    pinMode(MINB, OUTPUT);
+    pinMode(MPWM, OUTPUT);
   }
 
   /* Deconstructor - shuts motors down when powering off */
@@ -43,12 +45,12 @@ public:
   1/true for forward, 0/false for backward */
   void set_direction(bool fwd){
     if(fwd){
-      digitalWrite(MINA_pin, HIGH);
-      digitalWrite(MINB_pin, LOW);
+      digitalWrite(MINA, HIGH);
+      digitalWrite(MINB, LOW);
     }
     else{
-      digitalWrite(MINA_pin, LOW);
-      digitalWrite(MINB_pin, HIGH);
+      digitalWrite(MINA, LOW);
+      digitalWrite(MINB, HIGH);
     }
   }
 
@@ -63,17 +65,17 @@ public:
       set_direction(0);
     }
     else{
-      digitalWrite(MINA_pin, LOW);
-      digitalWrite(MINB_pin, LOW);
+      digitalWrite(MINA, LOW);
+      digitalWrite(MINB, LOW);
     }
-    analogWrite(MPWM_pin, abs(power));
+    analogWrite(MPWM, abs(power));
   }
 
 private:
   // Pins that belong to the motor.
-  uint8_t MINA_pin;
-  uint8_t MINB_pin;
-  uint8_t MPWM_pin;
+  uint8_t MINA;
+  uint8_t MINB;
+  uint8_t MPWM;
 };
 
 /* This is the class for the motors which are controlled by the adafruit DRV8871
@@ -81,11 +83,12 @@ motor driver shield.*/
 class DRV8871: public Motor{
 public:
   /* Constructor */
-  DRV8871(uint8_t IN1_pin, uint8_t IN2_pin){
-    this->IN1_pin = IN1_pin;
-    this->IN2_pin = IN2_pin;
-    pinMode(IN1_pin, OUTPUT);
-    pinMode(IN2_pin, OUTPUT);
+  DRV8871(uint8_t IN1_pin, uint8_t IN2_pin)
+    : IN1(IN1_pin),
+      IN2(IN2_pin)
+  {
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
     power = 0;
   }
 
@@ -98,12 +101,12 @@ public:
   1/true for forward, 0/false for backward */
   void set_direction(bool fwd){
     if(fwd){
-      analogWrite(IN1_pin, abs(power));
-      digitalWrite(IN2_pin, LOW);
+      analogWrite(IN1, abs(power));
+      digitalWrite(IN2, LOW);
     }
     else{
-      digitalWrite(IN1_pin, LOW);
-      analogWrite(IN2_pin, abs(power));
+      digitalWrite(IN1, LOW);
+      analogWrite(IN2, abs(power));
     }
   }
 
@@ -118,16 +121,16 @@ public:
       set_direction(0);
     }
     else{
-      digitalWrite(IN1_pin, LOW);
-      digitalWrite(IN2_pin, LOW);
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, LOW);
       power = 0;
     }
   }
 
 private:
   // Pins that belong to the motor
-  uint8_t IN1_pin;
-  uint8_t IN2_pin;
+  uint8_t IN1;
+  uint8_t IN2;
 };
 
 #endif
