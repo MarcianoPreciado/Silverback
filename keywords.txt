@@ -5,15 +5,21 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-Motor KEYWORD1
+Motor	KEYWORD1
+VNH5019	KEYWORD1
+DRV8871	KEYWORD1
+Xbee	KEYWORD1
+Message	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-set_power KEYWORD2
-set_direction KEYWORD2
-get_power KEYWORD2
-get_direction KEYWORD2
+set_power	KEYWORD2
+set_direction	KEYWORD2
+get_power	KEYWORD2
+get_direction	KEYWORD2
+fir_ma	KEYWORD2
+iir_wa	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
@@ -22,3 +28,15 @@ get_direction KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+ACK	LITERAL1
+START	LITERAL1
+STOP	LITERAL1
+RESET1	LITERAL1
+RESET2	LITERAL1
+RESET3	LITERAL1
+RESET4	LITERAL1
+RESET5	LITERAL1
+FORWARD	LITERAL1
+BACKWARD	LITERAL1
+LEFT	LITERAL1
+RIGHT	LITERAL1

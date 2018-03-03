@@ -25,28 +25,33 @@ void setup(){
   // Raise and lower winch.
   winch_motor.set_power(100);
   Serial.println("Raising winch");
-  delay(500);
+  delay(1000);
   winch_motor.set_power(-50);
   Serial.println("Lowering winch at slower speed");
   delay(1000);
   winch_motor.set_power(0);
   Serial.println("Stop winch");
-  delay(200);
+  delay(1000);
 
   // Drive forward
-  left_motor.set_power(100);
-  right_motor.set_power(100);
+  left_motor.set_power(200);
+  right_motor.set_power(200);
   Serial.println("Drive forward");
-  delay(500);
+  delay(1000);
   // Turn left
   left_motor.set_direction(0);
   Serial.println("Turn left");
-  delay(500);
+  delay(1000);
   // Turn right
   left_motor.set_direction(1);
   right_motor.set_direction(0);
   Serial.println("Turn right");
-  delay(500);
+  delay(1000);
+  // Drive in reverse
+  left_motor.set_power(-100);
+  right_motor.set_power(-100);
+  Serial.println("Drive backwards");
+  delay(1000);
   // Stop
   left_motor.set_power(0);
   right_motor.set_power(0);
