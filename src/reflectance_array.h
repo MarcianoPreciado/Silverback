@@ -6,23 +6,21 @@
 
 class ReflectanceArray{
 public:
-  ReflectanceArray(int pin1, int pin2, int pin3, int pin4, int pin5, int pin6)
-    : qtrrc((unsigned char[]) {pin1, pin2, pin3, pin4, pin5, pin6}, 6)
-      bias{0,0,0,0,0,0}
-      last_filtered{0,0,0,0,0,0}
+  ReflectanceArray(int pin1, int pin2, int pin3, int pin4, int pin5, int pin6, int pin7, int pin8)
+    : pins{pin1, pin2, pin3, pin4, pin5, pin6, pin7, pin8},
+      qtrrc(pins, 8)
   {
 
   }
-  ~ReflactanceArray(void){};
 
-  void calibrate(int n);
+  void calibrate(int n, int ms);
   double get_line();
 
 private:
     QTRSensorsRC qtrrc;
-    int bias[6];
-    int last_filtered[6];
-
+    unsigned char pins[8];
+    int bias[6]{0};
+    int last_filtered[6]{0};
 };
 
 

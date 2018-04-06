@@ -17,12 +17,12 @@ val iir_wa(val last_filtered, val current, double alpha){
  * n          - the number of items averaged
  * Returns single filtered value. */
 template <class val>
-val fir_ma(val[] unfiltered, int n){
+val fir_ma(val unfiltered[] , int n){
   val sum;
   for(int i = 0; i < n; i++){
     sum += unfiltered[i];
   }
-  val filtered = sum/n;
+  val filtered = sum/(val)n;
   return filtered;
 }
 
