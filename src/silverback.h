@@ -18,6 +18,12 @@ public:
   void set_pid_r(double Kp, double Ki, double Kd);
   void set_pid_l(double Kp, double Ki, double Kd);
   void set_pid_w(double Kp, double Ki, double Kd);
+  void set_drive_radius(double r);
+  void set_winch_radius(double r);
+  void set_drive_GR(double GR);
+  void set_winch_GR(double GR);
+  void set_counts_per_rev(int N);
+  void set_alpha(double alpha);
   void calibrate();
   void update();
   enum State {STANDBY, PADDLE_BOARD, WALL_LIFT, U_TURN, RAIL_RUNNER, WARPED_WALL};

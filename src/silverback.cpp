@@ -70,6 +70,30 @@ void Silverback::set_pid_w(double Kp, double Ki, double Kd){
   wpid.SetTunings(Kw[0], Kw[1], Kw[2]);
 }
 
+void Silverback::set_drive_radius(double r){
+  dr = r;
+}
+
+void Silverback::set_winch_radius(double r){
+  wr = r;
+}
+
+void Silverback::set_drive_GR(double GR){
+  dGR = GR;
+}
+
+void Silverback::set_winch_GR(double GR){
+  wGR = GR;
+}
+
+void Silverback::set_alpha(double alpha){
+  this->alpha = alpha;
+}
+
+void Silverback::set_counts_per_rev(int N){
+  this->N = N;
+}
+
 void Silverback::calibrate(){
   phe->calibrate();
   //TODO calibrate reflectance_array
@@ -485,6 +509,8 @@ double Silverback::get_line(){
   return line_loc[1];
 }
 
+/* Implement a P controller to stay on the line
+*/
 void Silverback::line_follow(){
   double Kp = 1;
   double err = line_loc[1];

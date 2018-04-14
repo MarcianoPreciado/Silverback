@@ -28,7 +28,12 @@ const int REF1 = A8, REF2 = A9, REF3 = A10, REF4 = A11,
 const int HES = A4;
 const int XBTX = 13, XBRX = 11;
 // Robot Characteristics
-
+double dr = 3.44; // Radius of drive wheels
+double wr = 1.0; // Radius of winch spool;
+double N = 64;  // Counts/rev of motors
+double gear_ratio_drive = 70 * 11.0/19.0;
+double gear_ratio_winch = 70 * 1.0; //TODO update
+double alpha = 0.15;
 // PID stuff
 const double r_Kp = 1.55885, r_Kd = 0.044532, r_Ki = 4.71236;
 const double l_Kp = 1.55885, l_Kd = 0.044532, l_Ki = 4.71236;
@@ -52,10 +57,8 @@ Encoder r_enc(ENC1A, ENC1B);
 Encoder l_enc(ENC2A, ENC2B);
 Encoder* encoders[2] = {&r_enc, &l_enc};
 // Reflectance array
-QTRSensorsRC qtrrc((unsigned char[]) {
-  REF1, REF2, REF3, REF4, REF5, REF6, REF7, REF8
-},
-8, 2500, EMIT);
+QTRSensorsRC qtrrc((unsigned char[]) { REF1, REF2, REF3, REF4, REF5, REF6, REF7,
+   REF8},8, 2500, EMIT);
 // Hall effect sensor
 HallEffect he(HES);
 // Create proximity objects for left and right sensors
@@ -81,6 +84,15 @@ void setup() {
   robot.set_pid_r(r_Kp, r_Ki, r_Kd); // Right Drive
   robot.set_pid_l(l_Kp, l_Ki, l_Kd); // Left Drive
   robot.set_pid_w(w_Kp, w_Ki, w_Kd); // Winch
+  // Set motor parameters
+  robot.set_drive_radius(dr);
+  robot.set_winch_radius(wr);
+  robot.set_counts_per_rev(64);
+  robot.set_drive_GR(gear_ratio_drive);
+  robot.set_winch_GR(gear_ratio_winch);
+  // Set filtering constant
+  robot.set_alpha(alpha);
+  // Calibrate sensors
   robot.calibrate();
 }
 
