@@ -6,9 +6,9 @@
 class Xbee{
 public:
   // List of defined messages and their corresponding ASCII values
-  enum Message{ACK = 0x06, START = 0x11, STOP = 0x12, RESET1 = 0x18,
-     RESET2 = 0x1C, RESET3 = 0x1D, RESET4 = 0x1E, RESET5 = 0x1F,
-     FORWARD = '+', BACKWARD = '-', LEFT = 'L' , RIGHT = 'R'};
+  enum Message{ACK = 0x06, START = 'S', STOP = 'C', RESET1 = 'P',
+     RESET2 = 'A', RESET3 = 'U', RESET4 = 'N', RESET5 = 'W',
+     FORWARD = 'F', BACKWARD = 'B', LEFT = 'L' , RIGHT = 'R'};
 
   /* Constuctor */
   Xbee(uint8_t rx_pin = 2, uint8_t tx_pin = 3)

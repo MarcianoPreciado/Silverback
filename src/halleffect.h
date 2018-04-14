@@ -35,7 +35,7 @@ public:
    * readings to better discern if there is a magnetic field or not.
   */
   void calibrate(){
-    int n = 1000;
+    int n = 100;
     int *readings = new int[n];
     double avg = 0;
     double variance = 0;
@@ -69,6 +69,12 @@ public:
 
   int get_stddev(){
     return stddev;
+  }
+
+  int reset_buffer(){
+    for(int i = 0; i < 10; i++){
+      vals[i] = 0;
+    }
   }
 
 private:

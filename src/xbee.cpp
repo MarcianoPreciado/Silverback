@@ -10,5 +10,6 @@ bool Xbee::message_ready(void){
 }
 
 Xbee::Message Xbee::get_message(void){
-
+  unsigned char raw = serial.read();
+  return static_cast<Xbee::Message>(raw);
 }

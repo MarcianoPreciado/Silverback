@@ -1,5 +1,7 @@
 #ifndef silverback_h
 #define silverback_h
+#include <QTRSensors.h>
+#include <PID_v1.h>
 #include <Encoder.h>
 #include <Servo.h>
 #include "motor.h"
@@ -11,43 +13,70 @@
 
 class Silverback{
 public:
-  Silverback(Motor* pm[2], Encoder* pe[2], Proximity* pp[2], Servo* ps[2],
-    HallEffect *phe, ReflectanceArray *pra, Xbee *pxb);
+  Silverback(Motor* pm[5], Servo* ps[2], Encoder* pe[3], QTRSensorsRC* pra,
+    HallEffect *phe, Proximity* pp[2], Xbee *pxb);
   void set_pid_r(double Kp, double Ki, double Kd);
   void set_pid_l(double Kp, double Ki, double Kd);
+  void set_pid_w(double Kp, double Ki, double Kd);
+  void calibrate();
   void update();
   enum State {STANDBY, PADDLE_BOARD, WALL_LIFT, U_TURN, RAIL_RUNNER, WARPED_WALL};
 
 private:
-  // Components
-  Motor *prm;
-  Motor *plm;
-  Motor *pwm;
-  Encoder *pre;
-  Encoder *ple;
-  Proximity *prp;
-  Proximity *plp;
-  Servo *prs;
-  Servo *pls;
+  // Component pointers
+  Motor *prm; // Right drive motor
+  Motor *plm; // Left drive Motor
+  Motor *pwm; // Winch motor
+  Motor *ptrm;// Top right motor
+  Motor *ptlm;// Top left motor
+  Encoder *pre;// Right drive encoder
+  Encoder *ple;// Left drive encoder
+  Encoder *pwe;// Winch encoder
+  Proximity *prp; // Right proximity
+  Proximity *plp; // Left proximity
+  Servo *pps; // Pose servo
+  Servo *pas; // Arm servo
   HallEffect *phe;
-  ReflectanceArray *pra;
+  QTRSensorsRC* pra;
   Xbee *pxb;
-  double Kr[3] {0};
-  double Kl[3] {0};
+
+  // PID values for motors
+  double Kr[3] {0}; // Right motor
+  double Kl[3] {0}; // Left motor
+  double Kw[3] {0}; // Winch motor
+  // PID objects for motors
+  PID rpid;
+  PID lpid;
+  PID wpid;
+  // Motor Inputs and Outputs
+  double rinput, linput, winput;
+  double rvel[2], lvel[2], wvel[2];
+  double rpos[2], lpos[2], wpos[2];
+  double rvel_des, lvel_des, wvel_des;
+  double rpos_des, lpos_des, wpos_des;
+
   // Characteristic variables
-  double GearRatio{0};
-  int countsPerRev_motor{0};
+  double dGR, wGR; // Drive gear ratio, winch gear ratio
+  double N;        // Number of counts per rev
+  double alpha;   // for iir filtering
+  double dr, wr;   // drive radius, winch radius
+
   // State-machine
   State state;
-  State last_state;
+  State state2;
+  State alt_state;
   void check_state();
 
+  void reset_readings(); // Resets all sensor-reading variables
   // Sensor-reading variables
-  double dist_r[5];
-  double dist_l[5];
-  double line_loc[5];
-  double hall[5];
+  double dist_r[5]{0};
+  double dist_l[5]{0};
+  double hall[5]{0};
   double dist_driven;
+  // Sensor Array Stuff
+  unsigned int bias[8]{0};
+  double line_loc[2]{0}; // Location of line 0 is middle, - left, + right
+  bool line_detected{0}; // true or false
 
   // Basic robot commands
   void sense();
@@ -55,7 +84,15 @@ private:
   void actuate();
 
   // State-specific commands
+  // Checking State
+  void check_state_sb();
+  void check_state_pb();
+  void check_state_wl();
+  void check_state_ut();
+  void check_state_rr();
+  void check_state_ww();
   // Sensing
+  void sense_sb();
   void sense_pb();
   void sense_wl();
   void sense_ut();
@@ -73,6 +110,12 @@ private:
   void actuate_ut();
   void actuate_rr();
   void actuate_ww();
+
+  // Helper Functions
+  double get_line();
+  void get_pos(Encoder *enc, double *pos, double r, double GR);
+  void get_vel(Encoder *enc, double *vel, double *pos, double r, double GR, double dt);
+
 };
 
 #endif
