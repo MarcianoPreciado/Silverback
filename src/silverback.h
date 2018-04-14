@@ -48,7 +48,7 @@ private:
   Xbee *pxb;
 
   // PID values for motors
-  double v_avg = 15;
+  double v_avg = 35;
   double Kr[3] {0}; // Right motor
   double Kl[3] {0}; // Left motor
   double Kw[3] {0}; // Winch motor
