@@ -13,9 +13,9 @@ typedef Silverback SB;
 
 Silverback::Silverback(Motor* pm[5], Servo* ps[2], Encoder* pe[3], QTRSensorsRC* pra,
   HallEffect *phe, Proximity* pp[2], Xbee *pxb):
-   rpid(&rinput, &(rvel[1]), &rvel_des, Kr[0], Kr[1], Kr[2], DIRECT),
-   lpid(&linput, &(lvel[1]), &lvel_des, Kl[0], Kl[1], Kl[2], DIRECT),
-   wpid(&winput, &(wpos[1]), &wpos_des, Kw[0], Kw[1], Kw[2], DIRECT)
+   rpid(&r_input, &(rvel[1]), &rvel_des, Kr[0], Kr[1], Kr[2], DIRECT),
+   lpid(&l_input, &(lvel[1]), &lvel_des, Kl[0], Kl[1], Kl[2], DIRECT),
+   wpid(&w_input, &(wpos[1]), &wpos_des, Kw[0], Kw[1], Kw[2], DIRECT)
    {
     // Motors
     prm = pm[0]; // Right drive motor
@@ -228,26 +228,53 @@ void Silverback::check_state_sb(){
     state = alt_state;
     alt_state = SB::STANDBY;
     // Reset recorded values to 0;
-    reset_readings();
+    reset();
   }
 }
 
+/* PADDLE_BOARD MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::check_state_pb(){
-
+  double drive_dist = 30; //[cm] how far driven
+  if(dist_driven >= drive_dist){
+    reset();
+    state = WALL_LIFT;
+  }
 }
 
+/* WALL_LIFT MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::check_state_wl(){
-
+  // If on a line, do line follow
+  if(line_detected){
+    state = 0;
+  }
+  // If not detected drive forward
+  else{
+    state = 1;
+  }
+  // TODO finish states
 }
 
+/* U-TURN MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::check_state_ut(){
 
 }
 
+/* RAIL_RUNNER MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::check_state_rr(){
 
 }
 
+/* WARPED_WALL MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::check_state_ww(){
 
 }
@@ -266,25 +293,35 @@ void Silverback::sense_sb(){
  * Obtain wall distance values and encoder distances
  */
 void Silverback::sense_pb(){
+  // Update time
+  t[0] = t[1];
+  t[1] = micros()*1e-6;
   // Record new distance values
   for(int i = 0; i < 4; i++){
     dist_r[i] = dist_r[i+1];
     dist_l[i] = dist_l[i+1];
   }
+  // Record proximity sensor readings
   dist_r[4] = prp->read();
   dist_l[4] = plp->read();
-  // Read encoder values TODO add time implementation
-  //get_vel(pre, rvel, rpos, dr, dGR, dt);
-  //get_vel(ple, lvel, lpos, dr, dGR, dt);
+  // Record distances & velocities of drive motors
+  get_vel(pre, rvel, rpos, dr, dGR, t[1] - t[0]);
+  get_vel(ple, lvel, lpos, dr, dGR, t[1] - t[0]);
 }
 
-/* PADDLE_BOARD MODE
+/* WALL_LIFT MODE
  * Obtain encoder values
  */
 void Silverback::sense_wl(){
-  // Read encoder values TODO implement time change t0-t1
-  //get_vel(pre, rvel, rpos, dr, dGR, dt);
-  //get_vel(ple, lvel, lpos, dr, dGR, dt);
+  // Update time
+  t[0] = t[1];
+  t[1] = micros()*1e-6;
+  // Read the line
+  // Updates line_loc and line_detected variables
+  get_line();
+  // Record distances & velocities of drive motors
+  get_vel(pre, rvel, rpos, dr, dGR, t[1] - t[0]);
+  get_vel(ple, lvel, lpos, dr, dGR, t[1] - t[0]);
 }
 
 /* U_TURN MODE
@@ -306,12 +343,31 @@ void Silverback::sense_ww(){
 }
 
 /************** Processing ****************/
+/* PADDLE_BOARD MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::process_pb(){
-
+  dist_driven = (dist_r[4] + dist_l[4])/2;
+  // Convert distance to desired velocities
+  rvel_des = dist_l[4]/dist_r[4] * v_avg; //[cm/s]
+  lvel_des = dist_r[4]/dist_l[4] * v_avg; //[cm/s]
+  // Compute new motor inputs
+  rpid.Compute();
+  lpid.Compute();
 }
 
+/* WALL_LIFT MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::process_wl(){
+  switch(state2){
+    case 0:
+      line_follow();
+      break;
+    case 1:
 
+      break;
+  };
 }
 
 void Silverback::process_ut(){
@@ -327,12 +383,19 @@ void Silverback::process_ww(){
 }
 
 /************** Actuation ****************/
+/* PADDLE_BOARD MODE
+ * Obtain wall distance values and encoder distances
+ */
 void Silverback::actuate_pb(){
   Serial.println("PADDLE_BOARD");
+  prm->set_power(r_input);
+  plm->set_power(l_input);
 }
 
 void Silverback::actuate_wl(){
   Serial.println("WALL_LIFT");
+  prm->set_power(r_input);
+  plm->set_power(l_input);
 }
 
 void Silverback::actuate_ut(){
@@ -348,7 +411,14 @@ void Silverback::actuate_ww(){
 }
 
 // Reset all sensor recordings
-void Silverback::reset_readings(){
+void Silverback::reset(){
+  // Start on base-state
+  state2 = 0;
+  // Reset Motor Speeds
+  rvel_des = 0;
+  lvel_des = 0;
+  wvel_des = 0;
+  // Reset recorded sensor values
   for(int j = 0; j < 5; j++){
     hall[j] = 0.0;
     dist_r[j] = 0.0;
@@ -380,6 +450,10 @@ void Silverback::get_vel(Encoder *enc, double *vel, double *pos, double r, doubl
   vel[1] = iir_wa(vel[0], v, alpha);
 }
 
+bool Silverback::line(){
+  return line_detected;
+}
+
 // Reflectance Array Functions
 double Silverback::get_line(){
   // Get raw values from array
@@ -402,10 +476,20 @@ double Silverback::get_line(){
     den += biased[j];
   }
   // Check if line is there
-  line_detected = sum > 100;
+  sum_line = sum;
+  line_detected = sum > 1500; // TODO make statistical approach
   // Shift values
   line_loc[0] = line_loc[1];
   line_loc[1] = num/den;
-  line_loc[1] = (line_loc[1] - 4.9);
+  line_loc[1] = (line_loc[1] - 4.6);
   return line_loc[1];
+}
+
+void Silverback::line_follow(){
+  double Kp = 1;
+  double err = line_loc[1];
+  double diff = Kp*err;
+  rvel_des = v_avg + diff;
+  lvel_des = v_avg - diff;
+
 }

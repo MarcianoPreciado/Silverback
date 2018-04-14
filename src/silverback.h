@@ -22,6 +22,13 @@ public:
   void update();
   enum State {STANDBY, PADDLE_BOARD, WALL_LIFT, U_TURN, RAIL_RUNNER, WARPED_WALL};
 
+  // Helper Functions
+  double get_line();
+  void get_pos(Encoder *enc, double *pos, double r, double GR);
+  void get_vel(Encoder *enc, double *vel, double *pos, double r, double GR, double dt);
+  bool line();
+  void line_follow();
+
 private:
   // Component pointers
   Motor *prm; // Right drive motor
@@ -41,6 +48,7 @@ private:
   Xbee *pxb;
 
   // PID values for motors
+  double v_avg = 15;
   double Kr[3] {0}; // Right motor
   double Kl[3] {0}; // Left motor
   double Kw[3] {0}; // Winch motor
@@ -49,35 +57,40 @@ private:
   PID lpid;
   PID wpid;
   // Motor Inputs and Outputs
-  double rinput, linput, winput;
+  double r_input, l_input, w_input;
+  int tr_input, tl_input;
   double rvel[2], lvel[2], wvel[2];
   double rpos[2], lpos[2], wpos[2];
   double rvel_des, lvel_des, wvel_des;
   double rpos_des, lpos_des, wpos_des;
+  // Other Actuator Inputs
+  int arm_angle, pose_angle;
 
   // Characteristic variables
   double dGR, wGR; // Drive gear ratio, winch gear ratio
   double N;        // Number of counts per rev
-  double alpha;   // for iir filtering
+  double alpha;    // for iir filtering
   double dr, wr;   // drive radius, winch radius
 
   // State-machine
-  State state;
-  State state2;
-  State alt_state;
+  State state; // Major state (obstacle)
+  int state2; // Minor state (part of same obstacle [zero indexed])
+  State alt_state; // Alternate state (STANDBY vs OBSTACLE)
   void check_state();
 
-  void reset_readings(); // Resets all sensor-reading variables
+  void reset(); // Resets all sensor-reading variables
   // Sensor-reading variables
   double dist_r[5]{0};
   double dist_l[5]{0};
   double hall[5]{0};
   double dist_driven;
+  double t[2]{0};
+
   // Sensor Array Stuff
   unsigned int bias[8]{0};
-  double line_loc[2]{0}; // Location of line 0 is middle, - left, + right
+  double line_loc[2]{0}; // Location of line. 0 is middle, - left, + right
   bool line_detected{0}; // true or false
-
+  int sum_line{0};
   // Basic robot commands
   void sense();
   void process();
@@ -110,12 +123,6 @@ private:
   void actuate_ut();
   void actuate_rr();
   void actuate_ww();
-
-  // Helper Functions
-  double get_line();
-  void get_pos(Encoder *enc, double *pos, double r, double GR);
-  void get_vel(Encoder *enc, double *vel, double *pos, double r, double GR, double dt);
-
 };
 
 #endif
